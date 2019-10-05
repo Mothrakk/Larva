@@ -1,0 +1,2 @@
+autostart:0
+infinite:0

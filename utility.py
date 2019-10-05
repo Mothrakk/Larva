@@ -35,26 +35,18 @@ def file_flush(path: str) -> str:
     file_write(path)
     return contents
 
-def pipe_path(name: str, extension=".txt") -> str:
-    """Build a path to the filename in the pipeline folder."""
-    return f"pipeline\\{name}{extension}"
-
 def timestamp() -> str:
     """Returns a timestamp in the form of %H:%M:%S"""
     return f"[{datetime.datetime.now().strftime('%H:%M:%S')}]"
 
-def build_log(contents: str, name="", _timestamp=True):
-    """Construct a pretty log to pass into Larva."""
-    out = f"{timestamp()} " * _timestamp
-    if name:
-        out += f"{name}: "
-    out += contents
-    return out
+def pid_alive(pid) -> bool:
+    """Check if given process (pid) is still alive."""
+    try:
+        os.kill(int(pid), 0)
+        return True
+    except OSError:
+        return False
 
-def write_to_larva(log: str):
-    """Write the log to Larva."""
-    file_write(pipe_path("larva"), log, "a")
-
-def my_name() -> str:
-    """Get a process' own filename using argv."""
-    return sys.argv[0].split("\\")[-1].split(".")[0]
+def pipe_path(name: str, extension=".txt") -> str:
+    """Build a path to the filename in the pipeline folder."""
+    return f"pipeline\\{name}{extension}"
