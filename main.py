@@ -1,10 +1,11 @@
 import msvcrt
-import utility
-import Larva
 
-manager = Larva.Larva()
+import LarvaLibs.Utility as Utility
+from LarvaLibs.Larva import Larva
 
-while utility.tick():
+manager = Larva()
+
+while Utility.tick():
     if msvcrt.kbhit():
         manager.handle_kb_input(input(">"))
     manager.handle_scripts_input()

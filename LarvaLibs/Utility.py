@@ -1,6 +1,6 @@
+import os
 import datetime
 import time
-import os
 import sys
 
 def TICKRATE() -> float:
