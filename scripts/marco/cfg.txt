@@ -1,2 +1,2 @@
-autostart:0
+autostart:1
 infinite:0

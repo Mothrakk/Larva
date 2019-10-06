@@ -34,6 +34,8 @@ class Script:
 
     def valid_cfg(self) -> bool:
         """Check if the contents of the script's cfg file are valid."""
+        if not os.path.isfile(self.cfg_path):
+            return False
         contents = utility.file_read(self.cfg_path).strip().split("\n")
         keys_required = set(Script.REQUIRED_CFG_SETTINGS.keys())
         for line in contents:
@@ -62,13 +64,18 @@ class Script:
         Return value is a tuple in the form of: (good_status: bool , err_log: Log)
         """
         if not os.path.isfile(self.path):
-            return (False, Log(f"Missing file: {self.filename}", self.name))
+            return (False, f"{self.name}: Missing file: {self.filename}")
         if not self.valid_cfg():
-            return (False, Log("Corrupted cfg file", self.name))
+            return (False, f"{self.name}: Corrupted cfg file")
         return (True, None)
 
     def proc_start(self) -> None:
+        """Ask the process handler to start the process."""
         self.prochandler.start()
+
+    def kill(self) -> None:
+        """Ask the process handler to kill the process."""
+        self.prochandler.kill()
 
 class ProcessHandler:
     def __init__(self, script: Script):
@@ -86,54 +93,72 @@ class ProcessHandler:
         else:
             script_status = self.script.good_status()
             if script_status[0]:
-                print(self.script.path)
                 self.p = subprocess.Popen(f"pythonw.exe {self.script.path} {os.getpid()}")
                 print(f"Started {self.script.name}")
             else:
-                script_status[1].to_larva()
+                print(script_status[1])
+
+    def kill(self) -> None:
+        if self.p is not None:
+            self.p.kill()
+            self.p = None
+            print(f"Killed {self.script.name}")
+        else:
+            print(f"{self.script.name} is not running")
 
 class Larva:
     def __init__(self):
         self.HARDCOMMANDS = {
             "help":self.help,
-            "exit":self.kill,
+            "exit":self.e,
             "cls":self.clear,
-            "start":self.start
+            "start":self.start,
+            "kill":self.kill
         }
+        self.create_missing_folders()
+        self.scripts = self.build_scripts_dict()
+        self.handle_autostart_scripts()
+
+    def create_missing_folders(self) -> None:
+        """Setup func - create folders."""
         for f in ("scripts", "pipeline"):
             if f not in os.listdir():
                 os.makedirs(f)
-        self.scripts = list()
-        self.name_to_scriptobj = dict()
-        for x in os.listdir("scripts"):
-            if len(x.split(".")) == 1:
-                s = Script(f"scripts\\{x}")
-                self.scripts.append(s)
-                self.name_to_scriptobj[x] = s
-        for s in self.scripts:
+
+    def build_scripts_dict(self) -> dict:
+        """Setup func - populate dictionary."""
+        scripts = dict()
+        for name in os.listdir("scripts"):
+            if len(name.split(".")) == 1:
+                scripts[name] = Script(f"scripts\\{name}")
+        return scripts
+
+    def handle_autostart_scripts(self) -> None:
+        """Attempt to start the scripts that are configured to be autostarted."""
+        for s in self.scripts.values():
             if s.valid_cfg() and s.cfg()["autostart"] == "1":
                 s.proc_start()
 
     def handle_scripts_input(self) -> None:
         contents = utility.file_flush(utility.pipe_path("larva"))
-        if contents is not None:
-            print(contents)
+        if contents:
+            print("\n".join(contents))
 
     def handle_kb_input(self, inp: str) -> None:
         inp = inp.strip().split(" ")
         if inp[0] in self.HARDCOMMANDS:
             self.HARDCOMMANDS[inp[0]](inp)
-        elif inp[0] in self.name_to_scriptobj:
-            utility.file_write(utility.pipe_path(inp[0]), " ".join(inp[1:]))
+        elif inp[0] in self.scripts:
+            utility.file_write(utility.pipe_path(inp[0]), ' '.join(inp[1:]), "a")
 
     def check_scripts_pulse(self) -> None:
         pass
 
     def help(self, inp: list) -> None:
         print(f"hcmds: {'; '.join(self.HARDCOMMANDS.keys())}")
-        print(f"scripts: {'; '.join(self.name_to_scriptobj.keys())}")
+        print(f"scripts: {'; '.join(self.scripts.keys())}")
 
-    def kill(self, inp: list) -> None:
+    def e(self, inp: list) -> None:
         print("Exiting")
         exit(0)
 
@@ -141,10 +166,16 @@ class Larva:
         subprocess.run("cls", shell=True)
 
     def start(self, inp: list) -> None:
-        if len(inp) < 2:
-            if inp[1] in self.name_to_scriptobj:
-                self.name_to_scriptobj[inp[1]].proc_start()
+        if len(inp) > 1:
+            if inp[1] in self.scripts:
+                self.scripts[inp[1]].proc_start()
             else:
                 print(f"{inp[1]} not found")
         else:
             print("start {script name}")
+
+    def kill(self, inp: list) -> None:
+        if inp[1] in self.scripts:
+            self.scripts[inp[1]].kill()
+        else:
+            print(f"{inp[1]} not found")
