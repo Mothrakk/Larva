@@ -1,4 +1,7 @@
+import sys
+sys.path.append(".") # Required for importing from parent relative path
 import Larva
+import utility
 
-log_to_larva = lambda contents, use_timestamp=True: Larva.Log(contents, "marco", use_timestamp).to_larva(True)
-log_to_larva("polo")
+Larva.Log("polo").to_larva()
+Larva.Log(sys.argv).to_larva()

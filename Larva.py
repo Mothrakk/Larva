@@ -1,30 +1,22 @@
 import subprocess
 import os
+import sys
 import utility
 
 class Log:
-    def __init__(self, contents: str, name="", use_timestamp=True):
-        self.contents = contents
-        self.name = name
+    def __init__(self, contents: str, use_timestamp=True):
+        self.contents = str(contents)
+        self.name = sys.argv[0].split("\\")[-1].split(".")[0]
         self.use_timestamp = use_timestamp
-    
+
     def build(self) -> str:
         log = f"{utility.timestamp()} " * self.use_timestamp
-        if self.name:
-            log += f"{self.name}: "
-        log += self.contents
+        log += f"{self.name}: {self.contents}"
         return log
 
-    def to_larva(self, method=False) -> None:
-        """Display the log.
-
-        `method: False` print() the log.
-
-        `method: True` use the pipeline."""
-        if method:
-            utility.file_write(utility.pipe_path("larva"), self.build(), "a")
-        else:
-            print(self.build())
+    def to_larva(self) -> None:
+        """Display the log using the pipeline."""
+        utility.file_write(utility.pipe_path("larva"), self.build(), "a")
 
 class Script:
     REQUIRED_CFG_SETTINGS = {
@@ -43,7 +35,7 @@ class Script:
     def valid_cfg(self) -> bool:
         """Check if the contents of the script's cfg file are valid."""
         contents = utility.file_read(self.cfg_path).strip().split("\n")
-        keys_required = Script.REQUIRED_CFG_SETTINGS.keys()
+        keys_required = set(Script.REQUIRED_CFG_SETTINGS.keys())
         for line in contents:
             line = line.split(":")
             if len(line) != 2:
@@ -90,23 +82,69 @@ class ProcessHandler:
 
     def start(self) -> None:
         if self.alive():
-            Log(f"{self.script.name} is already running").to_larva()
+            print(f"{self.script.name} is already running")
         else:
             script_status = self.script.good_status()
             if script_status[0]:
+                print(self.script.path)
                 self.p = subprocess.Popen(f"pythonw.exe {self.script.path} {os.getpid()}")
-                Log("Started", self.script.name).to_larva()
+                print(f"Started {self.script.name}")
             else:
                 script_status[1].to_larva()
 
 class Larva:
     def __init__(self):
-        os.makedirs("scripts")
-        os.makedirs("pipeline")
+        self.HARDCOMMANDS = {
+            "help":self.help,
+            "exit":self.kill,
+            "cls":self.clear,
+            "start":self.start
+        }
+        for f in ("scripts", "pipeline"):
+            if f not in os.listdir():
+                os.makedirs(f)
         self.scripts = list()
+        self.name_to_scriptobj = dict()
         for x in os.listdir("scripts"):
             if len(x.split(".")) == 1:
-                self.scripts.append(Script(f"scripts\\{x}"))
+                s = Script(f"scripts\\{x}")
+                self.scripts.append(s)
+                self.name_to_scriptobj[x] = s
         for s in self.scripts:
             if s.valid_cfg() and s.cfg()["autostart"] == "1":
                 s.proc_start()
+
+    def handle_scripts_input(self) -> None:
+        contents = utility.file_flush(utility.pipe_path("larva"))
+        if contents is not None:
+            print(contents)
+
+    def handle_kb_input(self, inp: str) -> None:
+        inp = inp.strip().split(" ")
+        if inp[0] in self.HARDCOMMANDS:
+            self.HARDCOMMANDS[inp[0]](inp)
+        elif inp[0] in self.name_to_scriptobj:
+            utility.file_write(utility.pipe_path(inp[0]), " ".join(inp[1:]))
+
+    def check_scripts_pulse(self) -> None:
+        pass
+
+    def help(self, inp: list) -> None:
+        print(f"hcmds: {'; '.join(self.HARDCOMMANDS.keys())}")
+        print(f"scripts: {'; '.join(self.name_to_scriptobj.keys())}")
+
+    def kill(self, inp: list) -> None:
+        print("Exiting")
+        exit(0)
+
+    def clear(self, inp: list) -> None:
+        subprocess.run("cls", shell=True)
+
+    def start(self, inp: list) -> None:
+        if len(inp) < 2:
+            if inp[1] in self.name_to_scriptobj:
+                self.name_to_scriptobj[inp[1]].proc_start()
+            else:
+                print(f"{inp[1]} not found")
+        else:
+            print("start {script name}")

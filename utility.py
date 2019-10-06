@@ -15,8 +15,8 @@ def tick() -> float:
 def file_read(path: str) -> str:
     """Wrapper function to read from a file in one line.
     
-    Returns empty string if file doesn't exist."""
-    out = ""
+    Returns None if file doesn't exist."""
+    out = None
     if os.path.isfile(path):
         with open(path, "r") as fptr:
             out = fptr.read()
@@ -28,11 +28,12 @@ def file_write(path: str, contents="", mode="w") -> None:
         fptr.write(f"{contents}\n")
 
 def file_flush(path: str) -> str:
-    """Read from a file and return the contents, leaving the file empty afterwards.
+    """Read from a file and return the contents, deleting the file afterwards.
     
-    Returns empty string is file doesn't exist."""
+    Returns `None` is file doesn't exist."""
     contents = file_read(path)
-    file_write(path)
+    if contents is not None:
+        os.remove(path)
     return contents
 
 def timestamp() -> str:
@@ -40,7 +41,10 @@ def timestamp() -> str:
     return f"[{datetime.datetime.now().strftime('%H:%M:%S')}]"
 
 def pid_alive(pid) -> bool:
-    """Check if given process (pid) is still alive."""
+    """Check if given process (pid) is still alive.
+    
+    Currently doesn't work. Seems to always return True?
+    """
     try:
         os.kill(int(pid), 0)
         return True
