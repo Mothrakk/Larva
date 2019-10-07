@@ -6,5 +6,4 @@ from LarvaLibs.Log import Log
 
 boiler = Boilerplate()
 
-Log(" ".join(sys.argv[2:])).to_larva()
-
+Log(" ".join(boiler.real_args)).to_larva()

@@ -4,6 +4,11 @@ import subprocess
 import time
 import sys
 
+def tick(x: float) -> float:
+    """Sleep for x seconds. Returns x."""
+    time.sleep(x)
+    return x
+
 def file_read(path: str) -> str:
     """Wrapper function to read from a file in one line.
     

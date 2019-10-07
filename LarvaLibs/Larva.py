@@ -9,7 +9,6 @@ class Larva:
     def __init__(self):
         self.HARDCOMMANDS = {
             "help" :self.help,
-            "exit" :self.e,
             "cls"  :self.clear,
             "start":self.start,
             "kill" :self.kill
@@ -17,11 +16,6 @@ class Larva:
         self.create_missing_folders()
         self.scripts = self.build_scripts_dict()
         self.handle_autostart_scripts()
-
-    def tick(self) -> float:
-        """Sleep for x seconds. Return x."""
-        time.sleep(0.1)
-        return 0.1
 
     def create_missing_folders(self) -> None:
         """Setup func - create folders."""
@@ -62,10 +56,6 @@ class Larva:
         print(f"cmds: {'; '.join(self.HARDCOMMANDS.keys())}")
         print(f"scripts: {'; '.join(self.scripts.keys())}")
 
-    def e(self, inp: list) -> None:
-        print("Exiting")
-        exit(0)
-
     def clear(self, inp: list) -> None:
         subprocess.run("cls", shell=True)
 
@@ -79,10 +69,8 @@ class Larva:
             print("start {script name} {arg} {arg} ...")
 
     def kill(self, inp: list) -> None:
-        if len(inp) > 1:
-            if inp[1] in self.scripts:
-                self.scripts[inp[1]].kill()
-            else:
-                print(f"{inp[1]} not found")
-        else:
-            print("kill {script name}")
+        if len(inp) == 1:
+            if input("Exit Larva? (Y)").lower() == "y":
+                exit(0)
+        elif inp[1] in self.scripts:
+            self.scripts[inp[1]].kill()
