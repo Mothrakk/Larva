@@ -54,9 +54,11 @@ class Script:
             return (False, f"{self.name}: Corrupted cfg file")
         return (True, None)
 
-    def proc_start(self) -> None:
-        """Ask the process handler to start the process."""
-        self.prochandler.start()
+    def proc_start(self, args: list) -> None:
+        """Ask the process handler to start the process.
+        
+        Inserts Larva's PID as the first argument."""
+        self.prochandler.start([str(os.getpid())] + args)
 
     def kill(self) -> None:
         """Ask the process handler to kill the process."""

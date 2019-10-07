@@ -4,15 +4,6 @@ import subprocess
 import time
 import sys
 
-def TICKRATE() -> float:
-    """Returns the global tickrate used in Larva's subprocesses."""
-    return 0.3
-
-def tick() -> float:
-    """Sleep for TICKRATE() seconds. Returns TICKRATE()."""
-    time.sleep(TICKRATE())
-    return TICKRATE()
-
 def file_read(path: str) -> str:
     """Wrapper function to read from a file in one line.
     

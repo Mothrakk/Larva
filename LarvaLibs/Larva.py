@@ -19,7 +19,7 @@ class Larva:
         self.handle_autostart_scripts()
 
     def tick(self) -> float:
-        """Sleep for 0.1s. Return `0.1`."""
+        """Sleep for x seconds. Return x."""
         time.sleep(0.1)
         return 0.1
 
@@ -59,7 +59,7 @@ class Larva:
         pass
 
     def help(self, inp: list) -> None:
-        print(f"hcmds: {'; '.join(self.HARDCOMMANDS.keys())}")
+        print(f"cmds: {'; '.join(self.HARDCOMMANDS.keys())}")
         print(f"scripts: {'; '.join(self.scripts.keys())}")
 
     def e(self, inp: list) -> None:
@@ -72,14 +72,17 @@ class Larva:
     def start(self, inp: list) -> None:
         if len(inp) > 1:
             if inp[1] in self.scripts:
-                self.scripts[inp[1]].proc_start()
+                self.scripts[inp[1]].proc_start(inp[2:])
             else:
                 print(f"{inp[1]} not found")
         else:
-            print("start {script name}")
+            print("start {script name} {arg} {arg} ...")
 
     def kill(self, inp: list) -> None:
-        if inp[1] in self.scripts:
-            self.scripts[inp[1]].kill()
+        if len(inp) > 1:
+            if inp[1] in self.scripts:
+                self.scripts[inp[1]].kill()
+            else:
+                print(f"{inp[1]} not found")
         else:
-            print(f"{inp[1]} not found")
+            print("kill {script name}")
