@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 
 import LarvaLibs.Utility as Utility
 from LarvaLibs.Script import Script
@@ -16,6 +17,11 @@ class Larva:
         self.create_missing_folders()
         self.scripts = self.build_scripts_dict()
         self.handle_autostart_scripts()
+
+    def tick(self) -> float:
+        """Sleep for 0.1s. Return `0.1`."""
+        time.sleep(0.1)
+        return 0.1
 
     def create_missing_folders(self) -> None:
         """Setup func - create folders."""

@@ -5,7 +5,7 @@ from LarvaLibs.Larva import Larva
 
 manager = Larva()
 
-while Utility.tick():
+while manager.tick():
     if msvcrt.kbhit():
         manager.handle_kb_input(input(">"))
     manager.handle_scripts_input()

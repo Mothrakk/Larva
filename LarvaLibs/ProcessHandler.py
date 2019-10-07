@@ -25,7 +25,7 @@ class ProcessHandler:
                 print(script_status[1])
 
     def kill(self) -> None:
-        if self.p is not None:
+        if self.alive():
             self.p.kill()
             self.p = None
             print(f"Killed {self.script.name}")

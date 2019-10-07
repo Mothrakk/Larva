@@ -1,11 +1,12 @@
 import os
 import datetime
+import subprocess
 import time
 import sys
 
 def TICKRATE() -> float:
-    """Returns the global tickrate used in Larva and its subprocesses."""
-    return 0.1
+    """Returns the global tickrate used in Larva's subprocesses."""
+    return 0.3
 
 def tick() -> float:
     """Sleep for TICKRATE() seconds. Returns TICKRATE()."""
@@ -41,15 +42,10 @@ def timestamp() -> str:
     return f"[{datetime.datetime.now().strftime('%H:%M:%S')}]"
 
 def pid_alive(pid) -> bool:
-    """Check if given process (pid) is still alive.
-    
-    Currently doesn't work. Seems to always return True?
-    """
-    try:
-        os.kill(int(pid), 0)
-        return True
-    except OSError:
-        return False
+    """Check if given process (pid) is still alive."""
+    capture = subprocess.run(f'TASKLIST /FO CSV /FI "PID eq {pid}"', capture_output=True)
+    capture = str(capture.stdout).split(r"\n")[1].split(",")
+    return capture != ["'"] and capture[0] == '"python.exe"'
 
 def pipe_path(name: str, extension=".txt") -> str:
     """Build a path to the filename in the pipeline folder."""
