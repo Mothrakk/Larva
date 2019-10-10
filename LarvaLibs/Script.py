@@ -51,7 +51,7 @@ class Script:
         if not os.path.isfile(self.path):
             return (False, f"{self.name}: Missing file: {self.filename}")
         if not self.valid_cfg():
-            return (False, f"{self.name}: Corrupted cfg file")
+            return (False, f"{self.name}: Corrupted cfg file, try using recfg")
         return (True, None)
 
     def proc_start(self, args: list) -> None:

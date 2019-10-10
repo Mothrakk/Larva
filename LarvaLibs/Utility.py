@@ -39,9 +39,8 @@ def timestamp() -> str:
 
 def pid_alive(pid) -> bool:
     """Check if given process (pid) is still alive."""
-    capture = subprocess.run(f'TASKLIST /FO CSV /FI "PID eq {pid}"', capture_output=True)
-    capture = str(capture.stdout).split(r"\n")[1].split(",")
-    return capture != ["'"] and capture[0] == '"python.exe"'
+    capture = subprocess.run(f'TASKLIST /FI "PID eq {pid}" /FI "IMAGENAME eq python.exe" /FO CSV /NH', capture_output=True)
+    return str(capture.stdout)[2] == '"' # Don't question this
 
 def pipe_path(name: str, extension=".txt") -> str:
     """Build a path to the filename in the pipeline folder."""
